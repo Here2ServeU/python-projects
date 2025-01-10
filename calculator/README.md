@@ -1,4 +1,4 @@
-# Here’s an explanation of the Python calculator script step by step:
+# Creating A Calculator Using Python
 
 #### 1. Importing Necessary Components
 
@@ -131,4 +131,5 @@ if __name__ == "__main__":
 
 ---
 
-## Next Project: Deploying The Calculator To The Internet
+# Next Project: Deploying The Calculator To The Internet
+
