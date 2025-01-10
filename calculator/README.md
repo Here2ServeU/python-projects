@@ -131,5 +131,5 @@ if __name__ == "__main__":
 
 ---
 
-# Next Project: Deploying The Calculator To The Internet
+# Next Project: Make The Calculator Accessible Over The Internet
 
