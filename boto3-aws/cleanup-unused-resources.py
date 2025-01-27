@@ -5,6 +5,7 @@ from dateutil import tz
 # Initialize AWS clients
 ec2_client = boto3.client("ec2")
 cloudwatch_logs_client = boto3.client("logs")
+iam_client = boto3.client("iam")
 
 def delete_old_ebs_snapshots():
     print("Checking for old EBS snapshots...")
@@ -30,7 +31,6 @@ def delete_old_cloudwatch_log_groups():
                     print(f"Deleting log group: {log_group['logGroupName']} last used on {last_ingestion_date}")
                     cloudwatch_logs_client.delete_log_group(logGroupName=log_group['logGroupName'])
 
-
 def delete_old_ec2_instances():
     print("Checking for old EC2 instances...")
     three_years_ago = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=3 * 365)
@@ -46,7 +46,6 @@ def delete_old_ec2_instances():
 
 def delete_unused_security_groups():
     print("Checking for unused security groups...")
-    one_year_ago = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=365)
     security_groups = ec2_client.describe_security_groups()['SecurityGroups']
 
     for sg in security_groups:
@@ -65,16 +64,30 @@ def delete_unused_security_groups():
 
 def delete_unused_key_pairs():
     print("Checking for unused key pairs...")
-    one_year_ago = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=365)
     key_pairs = ec2_client.describe_key_pairs()['KeyPairs']
 
     for key_pair in key_pairs:
         key_name = key_pair['KeyName']
-        # Unfortunately, AWS does not track key pair usage natively, so this is a placeholder
-        # Implement custom logic or logging to identify unused key pairs
+        # Placeholder logic for unused key pairs
         print(f"Placeholder: Checking usage of key pair {key_name}")
         # Example deletion:
         # ec2_client.delete_key_pair(KeyName=key_name)
+
+def delete_unused_iam_users():
+    print("Checking for unused IAM users...")
+    six_months_ago = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=6 * 30)
+    users = iam_client.list_users()['Users']
+
+    for user in users:
+        user_name = user['UserName']
+        last_used = iam_client.get_user(UserName=user_name)['User'].get('PasswordLastUsed')
+
+        if last_used and last_used < six_months_ago:
+            print(f"Deleting IAM user: {user_name}, last used on {last_used}")
+            try:
+                iam_client.delete_user(UserName=user_name)
+            except Exception as e:
+                print(f"Error deleting IAM user {user_name}: {e}")
 
 if __name__ == "__main__":
     delete_old_ebs_snapshots()
@@ -82,4 +95,5 @@ if __name__ == "__main__":
     delete_old_ec2_instances()
     delete_unused_security_groups()
     delete_unused_key_pairs()
+    delete_unused_iam_users()
 
