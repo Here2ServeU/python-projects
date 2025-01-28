@@ -62,16 +62,20 @@ def delete_unused_security_groups():
             except Exception as e:
                 print(f"Error deleting security group {sg_id}: {e}")
 
-def delete_unused_key_pairs():
-    print("Checking for unused key pairs...")
+def delete_old_key_pairs():
+    print("Checking for old key pairs...")
+    three_months_ago = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=90)
     key_pairs = ec2_client.describe_key_pairs()['KeyPairs']
 
     for key_pair in key_pairs:
         key_name = key_pair['KeyName']
-        # Placeholder logic for unused key pairs
-        print(f"Placeholder: Checking usage of key pair {key_name}")
-        # Example deletion:
-        # ec2_client.delete_key_pair(KeyName=key_name)
+        key_creation_time = key_pair.get('CreateTime', None)  # Replace with the actual method to fetch creation time, if available
+        if key_creation_time and key_creation_time < three_months_ago:
+            print(f"Deleting key pair: {key_name} created on {key_creation_time}")
+            try:
+                ec2_client.delete_key_pair(KeyName=key_name)
+            except Exception as e:
+                print(f"Error deleting key pair {key_name}: {e}")
 
 def delete_unused_iam_users():
     print("Checking for unused IAM users...")
@@ -94,6 +98,5 @@ if __name__ == "__main__":
     delete_old_cloudwatch_log_groups()
     delete_old_ec2_instances()
     delete_unused_security_groups()
-    delete_unused_key_pairs()
+    delete_old_key_pairs()
     delete_unused_iam_users()
-
